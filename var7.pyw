@@ -13,7 +13,7 @@ class MyLabel(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
         self.pressed = False
-
+        
     def mousePressEvent(self, event):
         self.pressed = True
 
@@ -36,7 +36,7 @@ class MainWindow(QWidget):
         uic.loadUi('var7.ui', self)
 
         self.image = MyLabel(self)
-        self.pixmap = QPixmap('images/image1.jpg')
+        self.pixmap = QPixmap('images/digit_background.png')
         self.image.setPixmap(self.pixmap)
         self.verticalLayout.insertWidget(0, self.image)
 
