@@ -60,9 +60,9 @@ class MyLabel(QLabel):
         self.classifyTimer.stop()
 
         # ресайз картинки
-        small = self.pixmap().toImage().scaled(20, 20).convertToFormat(QImage.Format_Indexed8)
+        small = self.pixmap().toImage().scaled(20, 20).convertToFormat(QImage.Format_Grayscale8)
         s = small.bits().asstring(20*20)
-        data = np.fromstring(s, dtype=np.int8).reshape((20, 20))
+        data = 255 - np.fromstring(s, dtype=np.uint8).reshape((20, 20))
         print(data)
         small.save('test.png')
 
