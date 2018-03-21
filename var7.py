@@ -5,7 +5,7 @@
 import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFileDialog, QMessageBox
-from PyQt5.QtGui import QPixmap, QPainter, QColor
+from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QBrush
 
 
 class MyLabel(QLabel):
@@ -16,18 +16,29 @@ class MyLabel(QLabel):
         
     def mousePressEvent(self, event):
         self.pressed = True
+        self.xPrev = event.x()
+        self.yPrev = event.y()
+
+        self.painter = QPainter(self.pixmap())
+        self.painter.begin(self)
 
     def mouseMoveEvent(self, event):
         if self.pressed:
-            self.painter = QPainter(self.pixmap())
-            color = QColor(128, 128, 128)
+            
+            color = QColor(0, 0, 0)
             self.painter.setBrush(color)
-            self.painter.setPen(color)
-            self.painter.drawEllipse(event.x(), event.y(), 5, 5)
+            pen = QPen(color, 15)
+            self.painter.setPen(pen)
+
+            self.painter.drawLine(self.xPrev, self.yPrev, event.x(), event.y())
+            
+            self.xPrev = event.x()
+            self.yPrev = event.y()
             self.repaint()
 
     def mouseReleaseEvent(self, event):
         self.pressed = False
+        self.painter.end()
 
 
 class MainWindow(QWidget):
@@ -39,13 +50,7 @@ class MainWindow(QWidget):
         self.pixmap = QPixmap('images/digit_background.png')
         self.image.setPixmap(self.pixmap)
         self.verticalLayout.insertWidget(0, self.image)
-
-        self.pushButton.clicked.connect(self.save_image)
-
-    def save_image(self):
-        filename = QFileDialog.getSaveFileName(self, 'Задайте путь сохранения файла', 'D:\\', 'PNG Image (*.png)')[0]
-        self.image.pixmap().save(filename)
-        QMessageBox.information(self, 'Информация', 'Изображение сохранено в файле ' + filename)
+   
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
