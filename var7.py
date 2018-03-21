@@ -4,10 +4,14 @@
 
 import sys
 import numpy as np
+import scipy.io
+from predict import predict
+from displayData import displayData
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QBrush, QImage
 from PyQt5.QtCore import QTimer
+from PyQt5 import QtCore
 
 
 class MyLabel(QLabel):
@@ -21,6 +25,10 @@ class MyLabel(QLabel):
         self.classifyTimer.timeout.connect(self.classify)
 
         # загрузка весов нейронной сети
+        data = scipy.io.loadmat('weights.mat')
+        self.Theta1 = np.matrix(data['Theta1'])
+        self.Theta2 = np.matrix(data['Theta2'])
+
 
     def mousePressEvent(self, event):
         self.pressed = True
@@ -28,6 +36,7 @@ class MyLabel(QLabel):
         self.yPrev = event.y()
 
         self.painter = QPainter(self.pixmap())
+        self.painter.setRenderHint(QPainter.Antialiasing)
         self.painter.begin(self.pixmap())
         
     def mouseMoveEvent(self, event):
@@ -36,6 +45,7 @@ class MyLabel(QLabel):
             color = QColor(0, 0, 0)
             self.painter.setBrush(color)
             pen = QPen(color, 15)
+            pen.setCapStyle(QtCore.Qt.RoundCap)
             self.painter.setPen(pen)
 
             self.painter.drawLine(self.xPrev, self.yPrev, event.x(), event.y())
@@ -49,10 +59,8 @@ class MyLabel(QLabel):
         self.painter.end()
 
         # запуск кода классификации картинки
-        # QTimer.singleShot(1000, self.classify)
-        # self.classifyTimer.stop()
-        self.classifyTimer.start(2000)
-        QTimer.singleShot(5000, self.clearImage)
+        self.classifyTimer.start(500)
+        QTimer.singleShot(1000, self.clearImage)
 
     def classify(self):
         # классификация картинки
@@ -61,10 +69,25 @@ class MyLabel(QLabel):
 
         # ресайз картинки
         small = self.pixmap().toImage().scaled(20, 20).convertToFormat(QImage.Format_Grayscale8)
-        s = small.bits().asstring(20*20)
-        data = 255 - np.fromstring(s, dtype=np.uint8).reshape((20, 20))
-        print(data)
         small.save('test.png')
+        s = small.bits().asstring(20*20)
+        sample = np.fromstring(s, dtype=np.uint8)
+        # sample = sample.reshape((1, 400))
+        sample = sample.reshape((20, 20)).T.reshape((1, 400))
+        sample = (255 - sample) / 243.0
+
+        # print(sample)
+        # print(np.min(sample))
+        # print(np.max(sample))
+        # print(np.mean(sample))
+
+        # displayData(sample)
+
+        # предсказание с помощью классификатора
+        print(self.Theta1.shape)
+        print(self.Theta2.shape)
+        pred = predict(self.Theta1, self.Theta2, sample)
+        print(pred)
 
 
     def clearImage(self):
