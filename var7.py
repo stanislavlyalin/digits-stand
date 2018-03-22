@@ -6,7 +6,6 @@ import sys
 import numpy as np
 import scipy.io
 from predict import predict
-from displayData import displayData
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFileDialog, QMessageBox
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QBrush, QImage
@@ -63,32 +62,18 @@ class MyLabel(QLabel):
         QTimer.singleShot(1000, self.clearImage)
 
     def classify(self):
-        # классификация картинки
-        print('Classify')
         self.classifyTimer.stop()
 
         # ресайз картинки
         small = self.pixmap().toImage().scaled(20, 20).convertToFormat(QImage.Format_Grayscale8)
-        small.save('test.png')
         s = small.bits().asstring(20*20)
         sample = np.fromstring(s, dtype=np.uint8)
-        # sample = sample.reshape((1, 400))
         sample = sample.reshape((20, 20)).T.reshape((1, 400))
         sample = (255 - sample) / 243.0
 
-        # print(sample)
-        # print(np.min(sample))
-        # print(np.max(sample))
-        # print(np.mean(sample))
-
-        # displayData(sample)
-
         # предсказание с помощью классификатора
-        print(self.Theta1.shape)
-        print(self.Theta2.shape)
         pred = predict(self.Theta1, self.Theta2, sample)
-        print(pred)
-
+        print('Digit is %d' % (pred[0] % 10))
 
     def clearImage(self):
         self.painter.begin(self.pixmap())
