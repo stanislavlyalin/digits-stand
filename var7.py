@@ -7,13 +7,17 @@ import numpy as np
 import scipy.io
 from predict import predict
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QBrush, QImage
 from PyQt5.QtCore import QTimer
 from PyQt5 import QtCore
 
 
-class MyLabel(QLabel):
+# class ConstantImage(QLabel):
+#     def __init__(self, *args):
+#         super().__init__(*args)
+
+class Image(QLabel):
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -27,7 +31,6 @@ class MyLabel(QLabel):
         data = scipy.io.loadmat('weights.mat')
         self.Theta1 = np.matrix(data['Theta1'])
         self.Theta2 = np.matrix(data['Theta2'])
-
 
     def mousePressEvent(self, event):
         self.pressed = True
@@ -64,7 +67,7 @@ class MyLabel(QLabel):
     def classify(self):
         self.classifyTimer.stop()
 
-        # ресайз картинки
+        # подготовка картинки к классификации
         small = self.pixmap().toImage().scaled(20, 20).convertToFormat(QImage.Format_Grayscale8)
         s = small.bits().asstring(20*20)
         sample = np.fromstring(s, dtype=np.uint8)
@@ -84,13 +87,49 @@ class MyLabel(QLabel):
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        uic.loadUi('var7.ui', self)
+        # uic.loadUi('var7.ui', self)
 
-        self.image = MyLabel(self)
+        # создание виджетов
+        self.inputImage = Image(self)
         self.pixmap = QPixmap('images/digit_background.png')
-        self.image.setPixmap(self.pixmap)
-        self.verticalLayout.insertWidget(0, self.image)
-   
+        self.inputImage.setPixmap(self.pixmap)
+
+        self.inputCaption = QLabel('Напишите цифру')
+        self.outputCaption = QLabel('Распознано')
+
+        self.outputImage = QLabel(self)
+        self.pixmap = QPixmap('images/digit_background.png')
+        self.outputImage.setPixmap(self.pixmap)
+
+        self.description = QLabel(self)
+        self.description.setText('Описание, как работает эта система')
+
+        self.descriptionImage = QLabel(self)
+        self.pixmap = QPixmap('images/description.png')
+        self.descriptionImage.setPixmap(self.pixmap)
+
+        # лэйауты
+        self.vBox = QVBoxLayout()
+        self.hBox = QHBoxLayout()
+        self.vBoxInputImage = QVBoxLayout()
+        self.vBoxOutputImage = QVBoxLayout()
+
+        # добавление виджетов в лэйауты
+        self.setLayout(self.vBox)
+        self.vBox.addLayout(self.hBox)
+
+        self.vBoxInputImage.addWidget(self.inputCaption)
+        self.vBoxInputImage.addWidget(self.inputImage)
+        self.hBox.addLayout(self.vBoxInputImage)
+
+        self.vBoxOutputImage.addWidget(self.outputCaption)
+        self.vBoxOutputImage.addWidget(self.outputImage)
+        self.hBox.addLayout(self.vBoxOutputImage)
+
+        # self.hBox.addWidget(self.outputImage)
+        self.hBox.addWidget(self.description)
+        self.vBox.addWidget(self.descriptionImage)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
