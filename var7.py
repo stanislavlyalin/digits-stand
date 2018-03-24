@@ -9,20 +9,48 @@ from predict import predict
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter, QColor, QPen, QBrush, QImage
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, pyqtSignal, pyqtSlot
 from PyQt5 import QtCore
 
 
-# class ConstantImage(QLabel):
-#     def __init__(self, *args):
-#         super().__init__(*args)
+class DigitImage(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setFixedSize(200, 200)
+        self.setStyleSheet('border: 3px solid grey;')
+
+    @pyqtSlot(int)
+    def drawDigit(self, digit):
+        print(digit)
+        self.painter = QPainter(self.pixmap())
+        self.painter.begin(self.pixmap())
+
+        font = self.painter.font()
+        font.setPointSize(60)
+        self.painter.setFont(font)
+
+        self.painter.drawText(self.rect(), QtCore.Qt.AlignCenter, str(digit))
+        self.painter.end()
+        self.repaint()
+
+    @pyqtSlot()
+    def clear(self):
+        self.painter.begin(self.pixmap())
+        self.painter.eraseRect(self.rect())
+        self.painter.end()
+        self.repaint()
+
 
 class Image(QLabel):
+
+    classifyed = pyqtSignal(int)
+    clear = pyqtSignal()
 
     def __init__(self, *args):
         super().__init__(*args)
         self.pressed = False
         self.setFixedSize(200, 200)
+        self.setStyleSheet('border: 3px solid grey;')
 
         self.classifyTimer = QTimer()
         self.classifyTimer.timeout.connect(self.classify)
@@ -77,12 +105,14 @@ class Image(QLabel):
         # предсказание с помощью классификатора
         pred = predict(self.Theta1, self.Theta2, sample)
         print('Digit is %d' % (pred[0] % 10))
+        self.classifyed.emit(pred[0] % 10)
 
     def clearImage(self):
         self.painter.begin(self.pixmap())
-        self.painter.eraseRect(0, 0, 200, 200)
+        self.painter.eraseRect(self.rect())
         self.painter.end()
         self.repaint()
+        self.clear.emit()
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -97,15 +127,16 @@ class MainWindow(QWidget):
         self.inputCaption = QLabel('Напишите цифру')
         self.outputCaption = QLabel('Распознано')
 
-        self.outputImage = QLabel(self)
+        self.outputImage = DigitImage(self)
         self.pixmap = QPixmap('images/digit_background.png')
         self.outputImage.setPixmap(self.pixmap)
 
         self.description = QLabel(self)
-        self.description.setText('Описание, как работает эта система')
-
+        self.description.setText('Введённая вами цифра представляет собой картинку размером 200*200 пикселей. Картинка уменьшается до размера 20*20 = 400 пикселей. Эти значения поступают на вход полносвязной обученной нейронной сети. Сигнал проходит через входной слой, скрытый слой и попадает на выходной слой. В выходном слое 10 нейронов, так как распознаётся 10 цифр. Распознанная цифра будет на том выходе, значение функции активации на котором наибольшее.')
+        self.description.setWordWrap(True)
+        
         self.descriptionImage = QLabel(self)
-        self.pixmap = QPixmap('images/description.png')
+        self.pixmap = QPixmap('images/descr.png')
         self.descriptionImage.setPixmap(self.pixmap)
 
         # лэйауты
@@ -129,6 +160,10 @@ class MainWindow(QWidget):
         # self.hBox.addWidget(self.outputImage)
         self.hBox.addWidget(self.description)
         self.vBox.addWidget(self.descriptionImage)
+
+        # соединение сигнала и слота рисования цифры
+        self.inputImage.classifyed.connect(self.outputImage.drawDigit)
+        self.inputImage.clear.connect(self.outputImage.clear)
 
 
 if __name__ == '__main__':
