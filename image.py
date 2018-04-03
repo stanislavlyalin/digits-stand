@@ -10,7 +10,8 @@ from predict import predict
 
 
 class Image(QLabel):
-    classified = pyqtSignal(int)
+    classifiedMLP = pyqtSignal(int)
+    classifiedCNN = pyqtSignal(int)
     clear = pyqtSignal()
 
     def __init__(self, *args):
@@ -71,7 +72,10 @@ class Image(QLabel):
 
         # предсказание с помощью классификатора
         predicted = predict(self.Theta1, self.Theta2, sample)[0] % 10
-        self.classified.emit(predicted)
+        self.classifiedMLP.emit(predicted)
+
+        # предсказание с помощью свёрточной сети Keras
+        self.classifiedCNN.emit(5)
 
     def clearImage(self):
         self.painter.begin(self.pixmap())

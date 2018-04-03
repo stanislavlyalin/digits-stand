@@ -17,11 +17,14 @@ class MainWindow(QWidget):
         self.inputImage.setPixmap(self.pixmap)
 
         self.inputCaption = QLabel('Напишите цифру')
-        self.outputCaption = QLabel('Распознано')
+        self.outputCaptionMLP = QLabel('Распознано MLP')
+        self.outputCaptionCNN = QLabel('Распознано CNN')
 
-        self.outputImage = DigitImage(self)
-        self.pixmap = QPixmap('images/digit_background.png')
-        self.outputImage.setPixmap(self.pixmap)
+        self.outputImageMLP = DigitImage(self)
+        self.outputImageMLP.setPixmap(self.pixmap)
+
+        self.outputImageCNN = DigitImage(self)
+        self.outputImageCNN.setPixmap(self.pixmap)
 
         self.description = QLabel(self)
         self.description.setText(
@@ -42,7 +45,8 @@ class MainWindow(QWidget):
         self.vBox = QVBoxLayout()
         self.hBox = QHBoxLayout()
         self.vBoxInputImage = QVBoxLayout()
-        self.vBoxOutputImage = QVBoxLayout()
+        self.vBoxOutputImageMLP = QVBoxLayout()
+        self.vBoxOutputImageCNN = QVBoxLayout()
 
         # добавление виджетов в лэйауты
         self.setLayout(self.vBox)
@@ -52,13 +56,18 @@ class MainWindow(QWidget):
         self.vBoxInputImage.addWidget(self.inputImage)
         self.hBox.addLayout(self.vBoxInputImage)
 
-        self.vBoxOutputImage.addWidget(self.outputCaption)
-        self.vBoxOutputImage.addWidget(self.outputImage)
-        self.hBox.addLayout(self.vBoxOutputImage)
+        self.vBoxOutputImageMLP.addWidget(self.outputCaptionMLP)
+        self.vBoxOutputImageMLP.addWidget(self.outputImageMLP)
+        self.hBox.addLayout(self.vBoxOutputImageMLP)
+        self.vBoxOutputImageCNN.addWidget(self.outputCaptionCNN)
+        self.vBoxOutputImageCNN.addWidget(self.outputImageCNN)
+        self.hBox.addLayout(self.vBoxOutputImageCNN)
 
         self.hBox.addWidget(self.description)
         self.vBox.addWidget(self.descriptionImage)
 
         # соединение сигнала и слота рисования цифры
-        self.inputImage.classified.connect(self.outputImage.drawDigit)
-        self.inputImage.clear.connect(self.outputImage.clear)
+        self.inputImage.classifiedMLP.connect(self.outputImageMLP.drawDigit)
+        self.inputImage.clear.connect(self.outputImageMLP.clear)
+        self.inputImage.classifiedCNN.connect(self.outputImageCNN.drawDigit)
+        self.inputImage.clear.connect(self.outputImageCNN.clear)
