@@ -9,6 +9,7 @@ from PyQt5 import QtCore
 from predict import predict
 from keras.models import model_from_json
 from keras.optimizers import Adam
+import h5py
 
 
 class Image(QLabel):
